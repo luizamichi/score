@@ -1,113 +1,98 @@
 <?php
+// CARREGA AS CONFIGURAÇÕES GLOBAIS E AS FUNÇÕES GLOBAIS
+require_once(__DIR__ . "/configurations.php");
+require_once(__DIR__ . "/functions.php");
 
-require_once("php/util.php");
 
-// Usuário está autenticado
-if(!empty($_SESSION) && isset($_SESSION["id"])) {
-	header("Location: formulario-0.php");
-	return false;
+if(MAINTENANCE_MODE) { // VERIFICA SE O MODO DE MANUTENÇÃO ESTÁ ATIVADO
+	include_once(VIEW_PATH . "maintenance.php");
+	exit();
 }
 
-$mensagem = !empty($_GET) && isset($_GET["mensagem"]) ? $_GET["mensagem"] : "";
-?>
 
-<!DOCTYPE html>
-<html lang="pt-br">
+// OBTÉM O NOME DA PÁGINA SOLICITADA
+$urn = get_urn();
 
-<head>
-	<title>AirTalent - SCORE</title>
-	<meta charset="utf-8"/>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-	<link rel="stylesheet" href="css/spectre.min.css">
-	<link rel="stylesheet" href="css/spectre-exp.min.css">
-	<link rel="stylesheet" href="css/spectre-icons.min.css">
-</head>
 
-<body style="background-image: url('img/background.jpg'); background-repeat: no-repeat; background-attachment: fixed; background-position: right; background-size: auto;">
-	<div class="container grid-lg">
-		<img alt="SCORE" class="img-responsive" src="img/logo.png" style="margin-bottom: 20px; margin-top: 50px; margin-left: auto; margin-right: auto; display: block; width: 300px;"/>
+try { // FAZ UM TRY/CATCH PARA FINALIZAR A EXECUÇÃO EM CASO DE ERRO E GRAVAR O REGISTRO DO ERRO EM LOG
+	if(!user_is_logined()) { // VERIFICA SE NÃO HÁ USUÁRIO LOGADO NO SISTEMA
+		// REALIZA A REQUISIÇÃO DE TODAS AS CONSTANTES DO SISTEMA
+		include_once(__DIR__ . "/student.php");
 
-		<div class="text-center">
-			<form action="php/index.php" method="post">
-				<div class="form-group pt-2 text-center" style="max-width: 350px; margin-left: auto; margin-right: auto;">
-					<label class="form-label" for="cpf">CPF</label>
-					<input autofocus="autofocus" class="form-input" id="cpf" name="cpf" placeholder="CPF" required="required" type="text"/>
-					<span class="text-error" id="cpf-validate"></span>
+		if($urn === "action/login") { // VERIFICA SE O USUÁRIO ESTÁ TENTANDO SE LOGAR
+			include_once(ACTION_ROUTES["action/login"]);
+		}
 
-					<label class="form-label" for="senha">Senha</label>
-					<input class="form-input" id="senha" name="senha" placeholder="Senha" required="required" type="password"/>
-				</div>
+		elseif($urn === "action/certificate") { // VERIFICA SE O USUÁRIO ESTÁ TENTANDO VALIDAR UM CERTIFICADO
+			include_once(ACTION_ROUTES["action/certificate"]);
+		}
 
-				<div class="form-group pt-2">
-					<input class="btn btn-primary input-group-btn" type="submit" value="Entrar"/>
-				</div>
+		else {
+			include_once(VIEW_ROUTES["login"]);
+		}
+	}
 
-				<p id="mensagem"><?=$mensagem?></p>
-			</form>
-		</div>
 
-	</div>
+	elseif(user_is_administrator()) { // VERIFICA SE O USUÁRIO É UM ADMINISTRADOR
+		// REALIZA A REQUISIÇÃO DE TODAS AS CONSTANTES DO PAINEL ADMINISTRATIVO
+		include_once(__DIR__ . "/administrator.php");
 
-	<script src="js/jquery-3.5.1.min.js"></script>
-	<script src="js/jquery.mask.js"></script>
-	<script>
-		$(document).ready(function() {
-			let input = $("input[name='cpf']");
-			let valido = true;
+		// VARIÁVEL UTILIZADA PARA AS BOAS-VINDAS
+		$username = get_user()["name"];
 
-			// Validação do CPF
-			input.attr("maxlength", 14);
-			input.mask("000.000.000-00", {reverse: false}); // input.attr("pattern", "\d{3}\.\d{3}\.\d{3}-\d{2}");
-			input.keydown(function() {
-				let cpf = $(this).val().replaceAll(".", "").replace("-", "");
-				valido = validaCPF(cpf);
-				$("#cpf-validate").html(valido ? "" : "O CPF informado é inválido.");
-			});
+		if(in_array($urn, array_keys(ACTION_ROUTES))) { // REALIZA UM CRUD DO PAINEL ADMINISTRATIVO
+			include_once(ACTION_ROUTES[$urn]);
+		}
 
-			function validaCPF(cpf) {
-				if(cpf.length == 11) {
-					var soma;
-					var resto;
-					soma = 0;
-					if(cpf == "00000000000")
-						return false;
+		elseif(in_array($urn, array_keys(VIEW_ROUTES))) { // EXIBE A TELA SOLICITADA
+			include_once(VIEW_ROUTES[$urn]);
+		}
 
-					for(i = 1; i <= 9; i++)
-						soma = soma + parseInt(cpf.substring(i - 1, i)) * (11 - i);
-					resto = (soma * 10) % 11;
+		else { // REDIRECIONA PARA A PÁGINA PRINCIPAL
+			include_once(VIEW_ROUTES["list"]);
+		}
+	}
 
-					if(resto == 10 || resto == 11)
-						resto = 0;
-					if(resto != parseInt(cpf.substring(9, 10)))
-						return false;
 
-					soma = 0;
-					for(i = 1; i <= 10; i++)
-						soma = soma + parseInt(cpf.substring(i - 1, i)) * (12 - i);
-					resto = (soma * 10) % 11;
+	elseif(user_is_student()) { // VERIFICA SE O USUÁRIO É UM ALUNO
+		// REALIZA A REQUISIÇÃO DE TODAS AS CONSTANTES DO SISTEMA
+		include_once(__DIR__ . "/student.php");
 
-					if((resto == 10) || (resto == 11))
-						resto = 0;
-					if(resto != parseInt(cpf.substring(10, 11)))
-						return false;
-					return true;
-				}
-				return true;
+		if(in_array($urn, array_keys(ACTION_ROUTES))) { // REALIZA O CRUD DO SISTEMA
+			include_once(ACTION_ROUTES[$urn]);
+		}
+
+		else { // REDIRECIONA PARA A PÁGINA CORRETA
+			// VARIÁVEL UTILIZADA PARA AS BOAS-VINDAS
+			$username = get_user()["name"];
+
+			if(!user_started_the_form()) { // ALUNO AINDA NÃO INICIOU O FORMULÁRIO
+				include_once(VIEW_ROUTES["index"]);
 			}
 
-			// Validação do formulário
-			$("form").submit(function() {
-				if(!valido) {
-					$("#mensagem").html("Informe um CPF válido para liberar o acesso.");
-					return false;
-				}
-				else {
-					input.val(input.val().replaceAll(".", "").replace("-", ""));
-					$("#mensagem").html("Autenticando usuário.");
-				}
-			});
-		});
-	</script>
-</body>
+			elseif(user_finished_the_form()) { // ALUNO JÁ TERMINOU O FORMULÁRIO
+				include_once(VIEW_ROUTES["finished"]);
+			}
 
-</html>
+			else { // ALUNO AINDA NÃO TERMINOU O FORMULÁRIO
+				$level = what_is_the_level();
+
+				if(!$level["started"] || $level["finished"]) { // REDIRECIONA O ALUNO PARA O PRÓXIMO MÓDULO
+					$next_level = get_next_level();
+					include_once(MODULE_ROUTES[$next_level["module"]]);
+				}
+
+				else { // REDIRECIONA O ALUNO PARA A ETAPA ATUAL
+					include_once(STAGES_ROUTES[$level["stage"]]);
+				}
+			}
+		}
+	}
+}
+
+catch (Throwable $th) {
+	record_log("Error (" . $th->getLine() . ":" . $th->getFile() . ") found in " . $th->getMessage());
+
+	// EXIBE A TELA DE ERRO
+	include_once(VIEW_PATH . "error.php");
+}

@@ -1,42 +1,4 @@
-/**
- * jquery.mask.js
- * @version: v1.14.16
- * @author: Igor Escobar
- *
- * Created by Igor Escobar on 2012-03-10. Please report any bug at github.com/igorescobar/jQuery-Mask-Plugin
- *
- * Copyright (c) 2012 Igor Escobar http://igorescobar.com
- *
- * The MIT License (http://www.opensource.org/licenses/mit-license.php)
- *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
-
-/* jshint laxbreak: true */
-/* jshint maxcomplexity:17 */
-/* global define */
-
-// UMD (Universal Module Definition) patterns for JavaScript modules that work everywhere.
-// https://github.com/umdjs/umd/blob/master/templates/jqueryPlugin.js
+/*! jQuery.mask v1.14.16 | (c) Igor Escobar | opensource.org/licenses/mit-license.php */
 (function (factory, jQuery, Zepto) {
 
 	if (typeof define === 'function' && define.amd) {
@@ -62,13 +24,13 @@
 						dSel = document.selection,
 						cSelStart = ctrl.selectionStart;
 
-					// IE Support
+					// IE SUPPORT
 					if (dSel && navigator.appVersion.indexOf('MSIE 10') === -1) {
 						sel = dSel.createRange();
 						sel.moveStart('character', -p.val().length);
 						pos = sel.text.length;
 					}
-					// Firefox support
+					// FIREFOX SUPPORT
 					else if (cSelStart || cSelStart === '0') {
 						pos = cSelStart;
 					}
@@ -81,7 +43,7 @@
 					if (el.is(':focus')) {
 						var range, ctrl = el.get(0);
 
-						// Firefox, WebKit, etc..
+						// FIREFOX, WEBKIT, ETC.
 						if (ctrl.setSelectionRange) {
 							ctrl.setSelectionRange(pos, pos);
 						} else { // IE
@@ -117,18 +79,17 @@
 						}
 						el.data('changed', false);
 					})
-					// it's very important that this callback remains in this position
-					// otherwhise oldValue it's going to work buggy
+					// IT'S VERY IMPORTANT THAT THIS CALLBACK REMAINS IN THIS POSITION OTHERWHISE OLDVALUE IT'S GOING TO WORK BUGGY
 					.on('blur.mask', function () {
 						oldValue = p.val();
 					})
-					// select all text on focus
+					// SELECT ALL TEXT ON FOCUS
 					.on('focus.mask', function (e) {
 						if (options.selectOnFocus === true) {
 							$(e.target).select();
 						}
 					})
-					// clear the value if it not complete the mask
+					// CLEAR THE VALUE IF IT NOT COMPLETE THE MASK
 					.on('focusout.mask', function () {
 						if (options.clearIfNotMatch && !regexMask.test(p.val())) {
 							p.val('');
@@ -151,7 +112,7 @@
 							maskChunks.push(mask.charAt(i));
 							oRecursive = { digit: mask.charAt(i), pattern: pattern };
 						} else {
-							maskChunks.push(!optional && !recursive ? pattern : (pattern + '?'));
+							maskChunks.push(!optional ? pattern : (pattern + '?'));
 						}
 
 					} else {
@@ -226,7 +187,7 @@
 						}
 					}
 
-					// if the cursor is at the end keep it there
+					// IF THE CURSOR IS AT THE END KEEP IT THERE
 					if (caretPosNew > oldValL) {
 						caretPosNew = newValL * 10;
 					} else if (caretPosOld >= caretPosNew && caretPosOld !== oldValL) {
@@ -257,8 +218,7 @@
 						caretPos = p.getCaret(),
 						oldVal = el.data('mask-previus-value') || '';
 
-					// this is a compensation to devices/browsers that don't compensate
-					// caret positioning the right way
+					// THIS IS A COMPENSATION TO DEVICES/BROWSERS THAT DON'T COMPENSATE CARET POSITIONING THE RIGHT WAY
 					setTimeout(function () {
 						p.setCaret(p.calculateCaretPosition(oldVal));
 					}, $.jMaskGlobals.keyStrokeCompensation);
@@ -318,9 +278,8 @@
 							}
 							m += offset;
 						} else if (valDigit === lastUntranslatedMaskChar) {
-							// matched the last untranslated (raw) mask character that we encountered
-							// likely an insert offset the mask character from the last entry; fall
-							// through and only increment v
+							// MATCHED THE LAST UNTRANSLATED (RAW) MASK CHARACTER THAT WE ENCOUNTERED LIKELY AN INSERT OFFSET THE MASK CHARACTER FROM THE LAST ENTRY
+							// FALL THROUGH AND ONLY INCREMENT V
 							maskDigitCount--;
 							lastUntranslatedMaskChar = undefined;
 						} else if (translation.optional) {
@@ -364,8 +323,8 @@
 			mapMaskdigitPositions: function (newVal, maskDigitPosArr, valLen) {
 				var maskDiff = options.reverse ? newVal.length - valLen : 0;
 				p.maskDigitPosMap = {};
-				for (var i = 0; i < maskDigitPosArr.length; i++) {
-					p.maskDigitPosMap[maskDigitPosArr[i] + maskDiff] = 1;
+				for (var i of maskDigitPosArr) {
+					p.maskDigitPosMap[i + maskDiff] = 1;
 				}
 			},
 			callbacks: function (e) {
@@ -390,7 +349,7 @@
 
 		mask = typeof mask === 'function' ? mask(p.val(), undefined, el, options) : mask;
 
-		// public methods
+		// PUBLIC METHODS
 		jMask.mask = mask;
 		jMask.options = options;
 		jMask.remove = function () {
@@ -407,12 +366,12 @@
 			return el;
 		};
 
-		// get value without mask
+		// GET VALUE WITHOUT MASK
 		jMask.getCleanVal = function () {
 			return p.getMasked(true);
 		};
 
-		// get masked value without the value being in the input or element
+		// GET MASKED VALUE WITHOUT THE VALUE BEING IN THE INPUT OR ELEMENT
 		jMask.getMaskedVal = function (val) {
 			return p.getMasked(false, val);
 		};
@@ -437,16 +396,16 @@
 					el.attr('placeholder', options.placeholder);
 				}
 
-				// this is necessary, otherwise if the user submit the form
-				// and then press the "back" button, the autocomplete will erase
-				// the data. Works fine on IE9+, FF, Opera, Safari.
+				// THIS IS NECESSARY, OTHERWISE IF THE USER SUBMIT THE FORM AND THEN PRESS THE "BACK" BUTTON, THE AUTOCOMPLETE WILL ERASE THE DATA
+				// WORKS FINE ON IE9+, FF, OPERA, SAFARI
 				if (el.data('mask')) {
 					el.attr('autocomplete', 'off');
 				}
 
-				// detect if is necessary let the user type freely.
-				// for is a lot faster than forEach.
-				for (var i = 0, maxlength = true; i < mask.length; i++) {
+				// DETECT IF IS NECESSARY LET THE USER TYPE FREELY
+				// FOR IS A LOT FASTER THAN FOREACH
+				var maxlength = true;
+				for (var i = 0; i < mask.length; i++) {
 					var translation = jMask.translation[mask.charAt(i)];
 					if (translation && translation.recursive) {
 						maxlength = false;
@@ -575,8 +534,8 @@
 		watchInterval: 300,
 		watchInputs: true,
 		keyStrokeCompensation: 10,
-		// old versions of chrome dont work great with input event
-		useInput: !/Chrome\/[2-4][0-9]|SamsungBrowser/.test(window.navigator.userAgent) && eventSupported('input'),
+		// OLD VERSIONS OF CHROME DONT WORK GREAT WITH INPUT EVENT
+		useInput: !/Chrome\/[2-4]\d|SamsungBrowser/.test(window.navigator.userAgent) && eventSupported('input'),
 		watchDataMask: false,
 		byPassKeys: [9, 16, 17, 18, 36, 37, 38, 39, 40, 91],
 		translation: {
@@ -591,7 +550,7 @@
 	$.jMaskGlobals = $.jMaskGlobals || {};
 	globals = $.jMaskGlobals = $.extend(true, {}, globals, $.jMaskGlobals);
 
-	// looking for inputs with data-mask attribute
+	// LOOKING FOR INPUTS WITH DATA-MASK ATTRIBUTE
 	if (globals.dataMask) {
 		$.applyDataMask();
 	}
